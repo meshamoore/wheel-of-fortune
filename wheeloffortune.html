@@ -1,0 +1,264 @@
+<!--  A single page app allowing the user to play a simple game of Wheel of Fortune. Use JavaScript to give the user a word to guess letter by letter. Will the user lose points as they guess wrong? Will they try to beat the clock? Do they only get 3 guesses? You decide! Make it clear to the user what their goal is. The app should be styled with simple but modern design trends and fun for the user. Remember keep your user engaged.
+
+Grading criteria:
+Game works in Wheel of Fortune style
+Carefully designed UI/UX
+JS throws no errors
+User can play several rounds of new words
+Hints are given to direct the user what the word is related to
+HTML/CSS is properly formatted
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Wheel of Fortune</title>
+	<link rel="stylesheet" type="text/css" href="wheeloffortune.css">
+</head>
+<body>
+	<div id="game">
+		<div>Bank: $<span id="bank">0</span></div>
+		<input type="text" name="name" placeholder="Enter Your Name" id="playerName">
+		<input type="button" value="Start New Game" id="startNewGame">
+        <button id="button">Spin the Wheel!</button>
+		<input type="text" name="letter" id="guessLetter">
+		<button type="button" id="guessButton">Guess a Letter!</button>
+		<div><span>Category: <span id="category"></span> - guessed letters: <span id="guesses"></span></span></div>
+		<!--<div><img id= "man" src="maninsuit2.png"></div>
+		<div><img id="quote" src="quote4.png"></div>
+		<canvas id="canvas"></canvas>-->
+	</div>
+	<div id="speechBubble">
+		<!--<img id="quote" src="quote4.png">-->
+		<canvas id="canvas"></canvas>
+	</div>
+	<div id="host">
+		<img id= "man" src="maninsuit2.png">
+	</div>
+	<div id="gameboard"></div>
+	<script   src="https://code.jquery.com/jquery-3.1.1.js"   integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="   crossorigin="anonymous"></script>
+	<script>
+
+        class Player {
+            constructor(name) {
+                this.name = name;
+                this.bank = 0;
+            }
+
+            addToBank(amount) {
+                this.bank += amount;
+                document.getElementById("bank").innerText = this.bank + ".00";
+            }
+
+            resetBank() {
+                this.bank = 0;
+                document.getElementById("bank").innerText = 0;
+            }
+        }
+
+        class Puzzle {
+            constructor() {
+                var requestStr = "http://www.syzygy.works/init/my_api/random_wheel_answers.json";
+                this.gameboard = document.getElementById("gameboard");
+                this.setGrid();
+                this.guesses = [];
+                var self = this;
+                $.ajax({
+                    type: "GET",
+                    url: requestStr,
+                    success: function(data) {
+                        console.log(data.answerObj);
+                        Object.assign(self, data.answerObj);
+                        self.correctGuesses = [];
+                        self.missedGuesses = [];
+                        self.setPuzzleDisplay();
+                    }
+                        });
+            }
+
+            setGrid() {
+                var gameboardRow;
+                var gameboardLetter;
+                this.gameboard.innerHTML = "";
+                for (var i = 1; i < 7; i++) {
+                    this.gameboard.innerHTML += '<div id="gameboardRow' + i + '" class="gameboardRows"></div>';
+                    gameboardRow = document.getElementById("gameboardRow" + i);
+                    for (var l = 1; l < 13; l++) {
+                        gameboardRow.innerHTML += '<span id="row' + i + 'letter' + l + '" class="letters"></span>';
+                    };
+                }
+            }
+
+            setPuzzleDisplay() {
+                var word, thisRow, spanObj, leadingSpaces = 0, currentRow = 1;
+                document.getElementById("category").innerText = this.category;
+                for (var i = 0; i < this.wordList.length; i++) {
+                    thisRow = this.wordList[i];
+                    if (thisRow.length <= 12) {
+                        while(thisRow.length <= 12) {
+                            i++;
+                            word = this.wordList[i];
+                            if (word && thisRow.length + 1 + word.length <= 12) {
+                                thisRow += " " + word;
+                            } else {
+                                i--;
+                                break;
+                            }
+                        }
+                        if (thisRow.length != 12) {
+                            leadingSpaces = Math.floor((12-thisRow.length)/2);
+                        }
+                    }
+                    for (var r = 0; r < thisRow.length; r++) {
+                        spanObj = document.getElementById("row" + currentRow + "letter" + (r+1+leadingSpaces));
+                        if (thisRow[r]!= " ") {
+                            spanObj.innerText = thisRow[r];
+                            spanObj.className += " hideMe " + thisRow[r].toLowerCase();
+                            if (!/^[a-zA-Z]/.test(thisRow[r])) {
+                                spanObj.className += " showMe"
+                            }
+                        } else {
+                            spanObj.innerText = ' ';
+                        }
+                    }
+                    leadingSpaces = 0;
+                    currentRow++;
+                }
+            }
+
+            guessLetter(letter) {
+                letter = letter.toLowerCase();
+                var lowerCaseAnswer = this.answerText.toLowerCase();
+                var correctLetters = [];
+                if(this.guesses.indexOf(letter) < 0) {
+                    this.guesses.push(letter);
+                    if (this.guesses.length == 1) {
+                        document.getElementById("guesses").innerText = letter.toUpperCase();
+                    } else {
+                        document.getElementById("guesses").innerText += ", " + letter.toUpperCase();
+                    }
+                    if(lowerCaseAnswer.indexOf(letter) >= 0) {
+                        correctLetters = document.getElementsByClassName(letter);
+                        for (var i = 0; i < correctLetters.length; i++) {
+                            correctLetters[i].className += " showMe";
+                        };
+                    }
+                }
+                return correctLetters.length;
+            }
+        }
+
+		class Host {
+			constructor(canvas) {
+				this.canvas = canvas;
+				var context = canvas.getContext("2d");
+				context.font = "16px Arial";
+				context.textAlign = "center";
+   				context. textBaseline = "middle";
+				context.fillStyle = "#cfccb8";
+				this.context = context;
+			}
+
+			spin() {
+				var value = Math.floor(Math.random() * 100);
+
+				if (value < 35) {
+					this.speak("You landed on $100. Guess a letter!");
+					return 100;
+				} else if (value >= 35 && value< 60) {
+					this.speak("You landed on $250. Guess a letter!");
+					return 250;
+				} else if (value >= 60 && value< 75) {
+					this.speak("You landed on $500. Guess a letter!");
+					return 500;
+				} else if (value >= 75 && value< 80) {
+					this.speak("This is your lucky day! You landed on $1000. Guess a letter!");
+					return 1000;
+				} else if (value >= 80 && value< 90) {
+					this.speak("Spin again!");
+					return "Spin again!";
+				} else if (value >= 90 && value< 100) {
+					this.speak("Uh-oh, bad luck! You landed on Bankrupt!");
+					return 0;
+				}
+			}
+
+			// make host say something (write to canvas)
+			speak(text) {
+				var context = this.context;
+    				context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    				var start = 50;
+    				var increment = 20;
+    				var lines = this.getLines(context, text, 240);
+    				lines.forEach(function(line) {
+    					context.fillText(line, 160, start);
+    					start += increment;
+    				});
+			}
+
+			// helper method to break words onto new lines
+			getLines(context, text, maxWidth) {
+				var words = text.split(" ");
+				var lines = [];
+				var currentLine = words[0];
+
+				for (var i = 1; i < words.length; i++) {
+					var word = words[i];
+					var width = context.measureText(currentLine + " " + word).width;
+					if (width < maxWidth) {
+						currentLine += " " + word;
+					} else {
+						lines.push(currentLine);
+						currentLine = word;
+					}
+				}
+
+				lines.push(currentLine);
+				return lines;
+			}
+		}
+
+		var player, puzzle, host, spinValue = "new spin";
+
+
+		function startNewGame(name) {
+			if (name) {
+				player = new Player(name);
+				puzzle = new Puzzle();
+				host = new Host(document.getElementById("canvas"));
+			}
+		}
+
+		// function turn() {
+		// 	var turnValue = Host.spin();
+		// 	if (turnValue != "Spin again!") {
+
+		// 	}
+		// }
+		document.getElementById("startNewGame").addEventListener("click", function(){
+			var nameField = document.getElementById("playerName");
+			startNewGame(nameField.value);
+		});
+
+		document.getElementById("button").addEventListener("click", function() {
+			if(spinValue == "new spin" || spinValue === 0 || spinValue == "Spin again!") {
+                spinValue = host.spin();
+                if (spinValue === 0) {
+                    player.resetBank();
+                }
+            }
+		});
+
+        document.getElementById("guessButton").addEventListener("click", function() {
+            if (spinValue !== 0 && spinValue != "Spin again!" && spinValue != "new spin") {
+                var guessLetter = document.getElementById("guessLetter");
+                var correctLetterCount = puzzle.guessLetter(guessLetter.value);
+                player.addToBank(spinValue * correctLetterCount);
+                host.speak("You had " + correctLetterCount + " '" + guessLetter.value + "'s, spin again");
+                spinValue = "new spin";
+            }
+        })
+	</script>
+</body>
+</html>

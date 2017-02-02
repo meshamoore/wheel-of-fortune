@@ -1,0 +1,118 @@
+html {
+	background: #000;
+}
+
+body {
+	width: 750px;
+	/*margin: 0 auto;*/
+	/*margin-left: 30%;*/
+	margin-left: 40%;
+	color: #fff;
+}
+
+#game {
+	background-image: url("wheelbw.jpg");
+	background-repeat: no-repeat;
+	background-size: cover;
+	width: 750px;
+	min-height: 750px;
+	display: inline-block;
+}
+
+/*#man {
+	/*position: absolute;*/
+	/*position: fixed;
+	left: 0;
+	bottom: 0;
+}*/
+
+/*#quote {
+	position: absolute;
+	left: 10%;
+	/*top:5%;
+}*/
+
+/*#canvas {*/
+/*	width: 180px;
+	height: 120px;
+	border: 1px solid #d3d3d3;
+	position: absolute;
+	left: 12.5%;
+	top: 14.5%;
+}*/
+
+/*#button {
+	background-color:
+}*/
+
+#host {
+	width: 310px;
+	display: inline-block;
+	position: absolute;
+	left: 0;
+	bottom: 0%;
+}
+
+#gameboard {
+	width: 428px;
+	height: 320px;
+    padding: 10px;
+	background-color: #cfccb8;
+	/*background-color: #9c9a8a;*/
+	border-radius: 15px;
+	/*background-image:  url("yellowtv5.png");*/
+	display: inline-block;
+	position: absolute;
+	left: 15%;
+	bottom: 5%;
+}
+
+/*#speechBubble {*/
+	/*width: 240px;*/
+	/*height: 250px;*/
+	/*display: inline-block;*/
+	/*position: absolute;*/
+	/*left: 10%;*/
+	/*top: 5%;*/
+	/*box-sizing: content-box;*/
+
+/*}*/
+
+#quote {
+	z-index: 1;
+}
+
+#canvas {
+	/*z-index: 20;*/
+	width: 240px;
+	height: 250px;
+	border: none;
+	box-sizing: border-box;
+	background-image: url("quote4.png");
+	display: inline-block;
+	position: absolute;
+	left: 10%;
+	top: 5%;
+}
+
+.gameboardRows {
+    width: 100%;
+    height: 50px;
+}
+
+.letters {
+    display: inline-block;
+    width: 30px;
+    color: #000;
+    text-align: center;
+}
+
+.hideMe {
+    background-color: #000;
+    border: 2px solid #fff;
+}
+
+.showMe {
+    background-color: #cfccb8 !important;
+    border: none !important;
+}
